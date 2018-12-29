@@ -14,7 +14,7 @@
             <property name="javax.persistence.jdbc.user" value="zpo" />
             <property name="javax.persistence.jdbc.password" value="123" />
             <!-- EclipseLink should create the database schema automatically -->
-            <property name="eclipselink.ddl-generation" value="create-or-extend-tables" /> <!-- tu było update-table ale nie działa -->
+            <property name="eclipselink.ddl-generation" value="drop-and-create-tables" /> <!-- tu było update-table ale nie działa -->
             <property name="eclipselink.ddl-generation.output-mode" value="database" />
         </properties>
     </persistence-unit>

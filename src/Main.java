@@ -1,11 +1,19 @@
 import javax.persistence.*;
 import test. Family;
+import test.Job;
 import test.Person;
+
+import java.util.Arrays;
+import java.util.List;
 
 public class Main {
     private EntityManagerFactory factory;
+
     public void setUp() throws Exception {
         factory = Persistence.createEntityManagerFactory("people");
+
+        setUpJ0bs();
+
         EntityManager em = factory.createEntityManager();
         em.getTransaction().begin();  //nowa transakcja
         Query q = em.createQuery("select m from Person m"); //lista rekordów
@@ -18,6 +26,7 @@ public class Main {
                 Person person = new Person();
                 person.setFirstName("Jim_" + i);
                 person.setLastName("Knopf_" + i);
+                person.setJobList(getAllJ0bs());
                 em.persist(person);
                 family.getMembers().add(person);
                 em.persist(person);
@@ -27,6 +36,40 @@ public class Main {
         em.getTransaction().commit();
         em.close();
     }
+
+    public List<Job> getAllJ0bs() throws Exception {
+        EntityManager em = factory.createEntityManager();
+        Query q = em.createQuery("select m from Job m");
+        List<Job> result = q.getResultList();
+        em.close();
+        return result;
+    }
+
+    public void setUpJ0bs() throws Exception {
+        EntityManager em = factory.createEntityManager();
+        em.getTransaction().begin();  //nowa transakcja
+        Query q = em.createQuery("select m from Job m"); //lista rekordów
+        boolean createNewEntries = (q.getResultList().size() == 0);
+        if (createNewEntries) {// No, so lets create new entries
+            Job newJob = new Job();
+            newJob.setJobDescr("Murarz");
+            newJob.setSalery(69);
+            em.persist(newJob);
+
+            newJob = new Job();
+            newJob.setJobDescr("Tynkarz");
+            newJob.setSalery(99.7);
+            em.persist(newJob);
+
+            newJob = new Job();
+            newJob.setJobDescr("Akrobata");
+            newJob.setSalery(66.6);
+            em.persist(newJob);
+        }
+        em.getTransaction().commit();
+        em.close();
+    }
+
     public void checkAvailablePeople()
     {
         EntityManager em = factory.createEntityManager();
@@ -66,5 +109,8 @@ public class Main {
     public static void main(String[] args) throws Exception {
         Main fuckStaticClasses = new Main();
         fuckStaticClasses.setUp();
+        fuckStaticClasses.checkAvailablePeople();
+        fuckStaticClasses.checkFamily();
+
     }
 }
