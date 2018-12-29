@@ -3,8 +3,11 @@ import test. Family;
 import test.Job;
 import test.Person;
 
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Random;
+import java.util.Scanner;
+import java.util.stream.Collectors;
 
 public class Main {
     private EntityManagerFactory factory;
@@ -12,7 +15,7 @@ public class Main {
     public void setUp() throws Exception {
         factory = Persistence.createEntityManagerFactory("people");
 
-        setUpJ0bs();
+        setUpJobs();
 
         EntityManager em = factory.createEntityManager();
         em.getTransaction().begin();  //nowa transakcja
@@ -26,7 +29,7 @@ public class Main {
                 Person person = new Person();
                 person.setFirstName("Jim_" + i);
                 person.setLastName("Knopf_" + i);
-                person.setJobList(getAllJ0bs());
+                person.setJobList(getRandomJobs());
                 em.persist(person);
                 family.getMembers().add(person);
                 em.persist(person);
@@ -37,7 +40,7 @@ public class Main {
         em.close();
     }
 
-    public List<Job> getAllJ0bs() throws Exception {
+    public List<Job> getAllJobs() throws Exception {
         EntityManager em = factory.createEntityManager();
         Query q = em.createQuery("select m from Job m");
         List<Job> result = q.getResultList();
@@ -45,7 +48,68 @@ public class Main {
         return result;
     }
 
-    public void setUpJ0bs() throws Exception {
+    public List<Job> getRandomJobs() throws Exception {
+        List<Job> j0bs = getAllJobs();
+        Random random = new Random();
+        return j0bs.stream().filter(j -> random.nextBoolean()).collect(Collectors.toList());
+    }
+
+    public List<Job> getJobListForGivenPerson(Person person) {
+        return getJobListForGivenPerson(person, false);
+    }
+
+    public List<Job> getJobListForGivenPerson(Person person, boolean print) {
+        EntityManager em = factory.createEntityManager();
+        Query q = em.createQuery("SELECT m.jobList FROM Person m WHERE m.id = " + person.getId());
+        List<Job> jobs = q.getResultList();
+        if(jobs.size() == 0) return Collections.emptyList();
+        if(print) {
+            System.out.println("--- " + person.getFirstName() + " " + person.getLastName() + " ---");
+            if (jobs != null && jobs.size() > 0) jobs.forEach(j -> {
+                if (j != null) System.out.println(j.getJobDescr() + " " + j.getSalery());
+            });
+            else System.out.println("! BEZROBOTNY !");
+        }
+        em.close();
+        return jobs;
+    }
+
+    public void printTotalSalaryFromAllJobs(Person person) {
+        List<Job> jobs = getJobListForGivenPerson(person);
+        System.out.println("Suma zarobków: " + jobs.stream().mapToDouble(Job::getSalery).sum());
+    }
+
+    public double getTotalSalaryFromAllJobs(Person person) {
+        List<Job> jobs = getJobListForGivenPerson(person);
+        if(jobs.size() == 0) return 0.0;
+        double sum = 0.0;
+        for(Job job: jobs) {
+            if(job != null)
+                sum += job.getSalery();
+        }
+        return sum;
+    }
+
+    public void printFamilySalary() {
+        EntityManager em = factory.createEntityManager();
+        Query q = em.createQuery("SELECT f FROM Family f");
+        Family family = (Family) q.getSingleResult();
+        em.close();
+
+        double avg = 0.0;
+        int members = 0;
+
+        for(Person member: family.getMembers()) {
+            avg += getTotalSalaryFromAllJobs(member);
+            members++;
+        }
+
+        avg = avg / ((double) members);
+
+        System.out.println("Srednie zarobki rodziny: " + avg);
+    }
+
+    public void setUpJobs() throws Exception {
         EntityManager em = factory.createEntityManager();
         em.getTransaction().begin();  //nowa transakcja
         Query q = em.createQuery("select m from Job m"); //lista rekordów
@@ -75,6 +139,7 @@ public class Main {
         EntityManager em = factory.createEntityManager();
         Query q = em.createQuery("select m from Person m");
 // We should have 40 Persons in the database
+
         System.out.println(q.getResultList().size());
         em.close();
     }
@@ -105,6 +170,23 @@ public class Main {
         em.close();
     }
 
+    public Person getPersonFromDB(String name, String surname) {
+        EntityManager em = factory.createEntityManager();
+        Query q = em.createQuery("SELECT p FROM Person p WHERE p.firstName = :firstName AND p.lastName = :lastName");
+        q.setParameter("firstName", name);
+        q.setParameter("lastName", surname);
+
+        try {
+            Person person = (Person) q.getSingleResult();
+            return person;
+        } catch (Exception e) {
+            System.err.println("Can't get person from database!");
+            return null;
+        } finally {
+            em.close();
+        }
+    }
+
     /*********** STUDENTS IMPLEMENT THEIR SHIT BELOW ************/
     public static void main(String[] args) throws Exception {
         Main fuckStaticClasses = new Main();
@@ -112,5 +194,49 @@ public class Main {
         fuckStaticClasses.checkAvailablePeople();
         fuckStaticClasses.checkFamily();
 
+        Scanner scanner = new Scanner(System.in);
+        while(true) {
+            System.out.println("1) lista prac i zarobków dla wybranego członka rodziny\n" +
+                    "2) suma zarobków dla członka rodziny\n" +
+                    "3) średnie zarobki dla całej rodziny\n");
+
+            int choice = -1;
+            String name, surname;
+            try {
+                choice = scanner.nextInt();
+
+            } catch (Exception e) {
+                return;
+            }
+            switch (choice) {
+                case 1:
+                    scanner.nextLine();
+                    System.out.print("Name: ");
+                    name = scanner.nextLine();
+
+                    System.out.print("Surname: ");
+                    surname = scanner.nextLine();
+
+                    Person person = fuckStaticClasses.getPersonFromDB(name, surname);
+                    if(person != null) fuckStaticClasses.getJobListForGivenPerson(person, true);
+                    break;
+                case 2:
+                    scanner.nextLine();
+                    System.out.print("Name: ");
+                    name = scanner.nextLine();
+
+                    System.out.print("Surname: ");
+                    surname = scanner.nextLine();
+
+                    person = fuckStaticClasses.getPersonFromDB(name, surname);
+                    if(person != null) fuckStaticClasses.printTotalSalaryFromAllJobs(person);
+                    break;
+                case 3:
+                    fuckStaticClasses.printFamilySalary();
+                    break;
+                default:
+                    return;
+            }
+        }
     }
 }
