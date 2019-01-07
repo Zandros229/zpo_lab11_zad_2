@@ -10,9 +10,9 @@
 
         <properties>
             <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" />
-            <property name="javax.persistence.jdbc.url"      value="jdbc:mysql://localhost:3306/jpa?serverTimezone=UTC" />
-            <property name="javax.persistence.jdbc.user" value="zpo" />
-            <property name="javax.persistence.jdbc.password" value="123" />
+            <property name="javax.persistence.jdbc.url"      value="jdbc:mysql://db4free.net:3306/pracownicy229?serverTimezone=UTC" />
+            <property name="javax.persistence.jdbc.user" value="zandros" />
+            <property name="javax.persistence.jdbc.password" value="papaj229" />
             <!-- EclipseLink should create the database schema automatically -->
             <property name="eclipselink.ddl-generation" value="drop-and-create-tables" /> <!-- tu było update-table ale nie działa -->
             <property name="eclipselink.ddl-generation.output-mode" value="database" />

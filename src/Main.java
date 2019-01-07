@@ -76,7 +76,7 @@ public class Main {
 
     public void printTotalSalaryFromAllJobs(Person person) {
         List<Job> jobs = getJobListForGivenPerson(person);
-        System.out.println("Suma zarobków: " + jobs.stream().mapToDouble(Job::getSalery).sum());
+        System.out.println("AVG: " + jobs.stream().mapToDouble(Job::getSalery).sum());
     }
 
     public double getTotalSalaryFromAllJobs(Person person) {
@@ -196,9 +196,9 @@ public class Main {
 
         Scanner scanner = new Scanner(System.in);
         while(true) {
-            System.out.println("1) lista prac i zarobków dla wybranego członka rodziny\n" +
-                    "2) suma zarobków dla członka rodziny\n" +
-                    "3) średnie zarobki dla całej rodziny\n");
+            System.out.println("1) Job list and Salary for person\n" +
+                    "2) Salary sum for person\n" +
+                    "3) AVG salary for whole family\n");
 
             int choice = -1;
             String name, surname;
